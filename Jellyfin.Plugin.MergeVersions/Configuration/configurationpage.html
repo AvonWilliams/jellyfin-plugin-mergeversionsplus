@@ -169,7 +169,8 @@
 
                                 ApiClient.fetch({
                                     url: ApiClient.getUrl('MergeVersions/CurrentStatus'),
-                                    type: 'GET'
+                                    type: 'GET',
+                                    dataType: 'json'
                                 }).then(function (item) {
                                     currentItemText.innerHTML = item || '';
                                 });
