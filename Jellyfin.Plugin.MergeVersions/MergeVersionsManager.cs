@@ -45,9 +45,7 @@ namespace Jellyfin.Plugin.MergeVersions
 
             var duplicateMovies = GetMoviesFromLibrary()
                 .GroupBy(x => x.ProviderIds["Tmdb"])
-                .Where(group => group.Count() > 1 &&
-                group.Any(movie => movie.PrimaryVersionId == null &&
-                                    !movie.LinkedAlternateVersions.Any()))
+                .Where(group => group.Count() > 1)
                 .ToList();
 
             var current = 0;
@@ -180,8 +178,24 @@ namespace Jellyfin.Plugin.MergeVersions
 
             var primaryVersion = SelectPrimaryVersion(items);
 
+            // Already merged with this exact item as primary under the current
+            // strategy - nothing to do. This lets re-running Merge (manually or
+            // on schedule) pick up a strategy change without split+re-merge.
+            var currentPrimary = items.FirstOrDefault(i => i.LinkedAlternateVersions.Length > 0);
+            if (currentPrimary is not null &&
+                currentPrimary.Id.Equals(primaryVersion.Id) &&
+                items.Where(i => !i.Id.Equals(primaryVersion.Id))
+                    .All(i => string.Equals(
+                        i.PrimaryVersionId,
+                        primaryVersion.Id.ToString("N", CultureInfo.InvariantCulture),
+                        StringComparison.OrdinalIgnoreCase)))
+            {
+                return;
+            }
+
             var alternateVersionsOfPrimary = primaryVersion
-                .LinkedAlternateVersions.Where(l => items.Any(i => i.Path == l.Path))
+                .LinkedAlternateVersions
+                .Where(l => items.Any(i => i.Path == l.Path) && l.ItemId != primaryVersion.Id)
                 .ToList();
 
             var alternateVersionsChanged = false;
@@ -204,7 +218,11 @@ namespace Jellyfin.Plugin.MergeVersions
                                                 new LinkedChild { Path = item.Path,
                                                                   ItemId = item.Id });
 
-                foreach (var linkedItem in item.LinkedAlternateVersions)
+                // Exclude the new primary itself: if item was the old primary,
+                // its LinkedAlternateVersions includes what's now becoming its
+                // own primary and must not be copied back as a self-reference.
+                foreach (var linkedItem in item.LinkedAlternateVersions
+                    .Where(l => l.ItemId != primaryVersion.Id))
                 {
                     AddToAlternateVersionsIfNotPresent(alternateVersionsOfPrimary,
                                                     linkedItem);
@@ -224,6 +242,14 @@ namespace Jellyfin.Plugin.MergeVersions
 
             if (alternateVersionsChanged)
             {
+                // The new primary may itself have previously been an alternate
+                // (pointing at the old primary) - clear that before it takes
+                // over as primary.
+                if (!string.IsNullOrEmpty(primaryVersion.PrimaryVersionId))
+                {
+                    primaryVersion.SetPrimaryVersionId(null);
+                }
+
                 primaryVersion.LinkedAlternateVersions = alternateVersionsOfPrimary.ToArray();
                 await primaryVersion
                     .UpdateToRepositoryAsync(ItemUpdateType.MetadataEdit, CancellationToken.None)

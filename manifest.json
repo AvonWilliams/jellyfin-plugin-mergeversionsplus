@@ -8,6 +8,14 @@
         "category": "General",
         "versions": [
             {
+                "version": "10.11.0.2",
+                "changelog": "Primary version strategy now applies retroactively to already-merged items on every Merge run (manual or scheduled) - no more split/re-merge needed to pick up a strategy change. Fixes a self-reference bug when swapping an existing primary for a new one.",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/AvonWilliams/jellyfin-plugin-mergeversionsplus/releases/download/v10.11.0.2/Jellyfin.Plugin.MergeVersionsPlus.zip",
+                "checksum": "bbe5006f8d3f905554d736d4c5553566",
+                "timestamp": "2026-07-18T00:00:00"
+            },
+            {
                 "version": "0.0.0.1",
                 "changelog": "Initial release: configurable primary version selection strategy (file size, resolution, bitrate)",
                 "targetAbi": "10.11.0.0",

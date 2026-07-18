@@ -60,8 +60,9 @@ dotnet publish --configuration Release --output bin
 2. Merge your movies or episodes from the Scheduled Task or directly from the plugin
    configuration page.
 3. Splitting is only available through the configuration page.
-4. Changing the strategy does **not** retroactively re-evaluate already-merged items —
-   split and re-merge affected items for the new strategy to take effect on them.
+4. Changing the strategy takes effect the next time you run Merge (manually or via the
+   Scheduled Task) — already-merged items are re-evaluated automatically and re-primaried
+   if the new strategy picks a different version. No split/re-merge needed.
 
 ## Attribution
 

@@ -1,7 +1,7 @@
 ---
 name: "jellyfin-plugin-mergeversionsplus"
 guid: "2e02b900-aaf6-4415-b304-44f0c6f8c162"
-version: "1" # Please increment with each release
+version: "2" # Please increment with each release
 jellyfin_version: "10.7.0" # The earliest binary-compatible version
 owner: "AvonWilliams"
 nicename: "Merge Versions Plus"
