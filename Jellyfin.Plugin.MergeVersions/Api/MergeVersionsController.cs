@@ -37,6 +37,17 @@ namespace Jellyfin.Plugin.MergeVersions.Api
         }
 
         /// <summary>
+        /// Gets a description of the item currently being merged, if a merge is running.
+        /// </summary>
+        /// <returns>The current item description, or an empty string if idle.</returns>
+        [HttpGet("CurrentStatus")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult<string> GetCurrentStatus()
+        {
+            return Ok(MergeVersionsManager.CurrentItemStatus);
+        }
+
+        /// <summary>
         /// Scans all movies and merges repeated ones.
         /// </summary>
         /// <reponse code="204">Library scan and merge started successfully. </response>

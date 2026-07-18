@@ -71,6 +71,8 @@
                         <div id="updateDefaultsProgressContainer" style="display:none; margin-top: 1em;">
                             <div id="updateDefaultsStatusText" class="fieldDescription"></div>
                             <progress id="updateDefaultsProgressBar" value="0" max="100" style="width:100%;"></progress>
+                            <div id="updateDefaultsCurrentItem" class="fieldDescription"
+                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
                         </div>
                     </div>
                 </form>
@@ -121,10 +123,12 @@
                 var progressContainer = document.getElementById('updateDefaultsProgressContainer');
                 var progressBar = document.getElementById('updateDefaultsProgressBar');
                 var statusText = document.getElementById('updateDefaultsStatusText');
+                var currentItemText = document.getElementById('updateDefaultsCurrentItem');
 
                 progressContainer.style.display = 'block';
                 progressBar.value = 0;
                 statusText.innerHTML = 'Starting...';
+                currentItemText.innerHTML = '';
 
                 ApiClient.getScheduledTasks().then(function (tasks) {
                     var moviesTask = tasks.filter(function (t) { return t.Key === 'MergeMoviesTask'; })[0];
@@ -142,6 +146,7 @@
                         .then(function () {
                             statusText.innerHTML = 'Done';
                             progressBar.value = 100;
+                            currentItemText.innerHTML = '';
                         })
                         .catch(function () {
                             Dashboard.alert({ message: 'Unexpected error occurred!' });
@@ -161,6 +166,13 @@
                                 var pct = task.CurrentProgressPercentage || 0;
                                 progressBar.value = offset + (pct / 100) * weight;
                                 statusText.innerHTML = label + '... ' + Math.round(pct) + '%';
+
+                                ApiClient.fetch({
+                                    url: ApiClient.getUrl('MergeVersions/CurrentStatus'),
+                                    type: 'GET'
+                                }).then(function (item) {
+                                    currentItemText.innerHTML = item || '';
+                                });
 
                                 if (task.State === 'Idle') {
                                     clearInterval(interval);

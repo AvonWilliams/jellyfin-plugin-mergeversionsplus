@@ -27,6 +27,16 @@ namespace Jellyfin.Plugin.MergeVersions
         private readonly SessionInfo _session;
         private readonly IFileSystem _fileSystem;
 
+        /// <summary>
+        /// Human-readable description of the item currently being merged, for
+        /// display in the config page while a merge is running. Static because
+        /// each API call/scheduled task creates its own <see cref="MergeVersionsManager"/>
+        /// instance, so this needs to be visible across instances.
+        /// </summary>
+        private static volatile string _currentItemStatus = string.Empty;
+
+        public static string CurrentItemStatus => _currentItemStatus;
+
         public MergeVersionsManager(
             ILibraryManager libraryManager,
             ILogger<MergeVersionsManager> logger,
@@ -54,12 +64,12 @@ namespace Jellyfin.Plugin.MergeVersions
                 current++;
                 var percent = current / (double)duplicateMovies.Count * 100;
                 progress?.Report(percent);
-                _logger.LogInformation(
-                    $"Merging {m.ElementAt(0).Name} ({m.ElementAt(0).ProductionYear})"
-                );
+                _currentItemStatus = $"Merging {m.ElementAt(0).Name} ({m.ElementAt(0).ProductionYear})";
+                _logger.LogInformation(_currentItemStatus);
                 await MergeVersions(m.Select(e => e.Id).ToList());
             }
             progress?.Report(100);
+            _currentItemStatus = string.Empty;
         }
 
         public void SplitMovies(IProgress<double> progress)
@@ -103,12 +113,13 @@ namespace Jellyfin.Plugin.MergeVersions
                 current++;
                 var percent = current / (double)duplicateEpisodes.Count * 100;
                 progress?.Report((int)percent);
-                _logger.LogInformation(
-                    $"Merging {e.ElementAt(0).Name} ({e.ElementAt(0).ProductionYear})"
-                );
+                _currentItemStatus =
+                    $"Merging {e.ElementAt(0).SeriesName} - {e.ElementAt(0).Name} ({e.ElementAt(0).ProductionYear})";
+                _logger.LogInformation(_currentItemStatus);
                 await MergeVersions(e.Select(e => e.Id).ToList());
             }
             progress?.Report(100);
+            _currentItemStatus = string.Empty;
         }
 
         public async Task SplitEpisodesAsync(IProgress<double> progress)
