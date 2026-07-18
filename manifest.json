@@ -8,6 +8,14 @@
         "category": "General",
         "versions": [
             {
+                "version": "10.11.0.3",
+                "changelog": "Fixes a fire-and-forget bug in movie merging (Parallel.ForEach with an async lambda) that could starve the thread pool and stall progress on large libraries. Adds an \"Update Defaults\" button with a live progress bar on the config page to re-apply the primary version strategy to already-merged items on demand.",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/AvonWilliams/jellyfin-plugin-mergeversionsplus/releases/download/v10.11.0.3/Jellyfin.Plugin.MergeVersionsPlus.zip",
+                "checksum": "5d9ebff1c3e825b15d4b95a55d7589ad",
+                "timestamp": "2026-07-18T00:00:00"
+            },
+            {
                 "version": "10.11.0.2",
                 "changelog": "Primary version strategy now applies retroactively to already-merged items on every Merge run (manual or scheduled) - no more split/re-merge needed to pick up a strategy change. Fixes a self-reference bug when swapping an existing primary for a new one.",
                 "targetAbi": "10.11.0.0",

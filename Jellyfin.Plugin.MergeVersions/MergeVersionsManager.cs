@@ -39,7 +39,7 @@ namespace Jellyfin.Plugin.MergeVersions
             _timer = new Timer(_ => OnTimerElapsed(), null, Timeout.Infinite, Timeout.Infinite);
         }
 
-        public void MergeMovies(IProgress<double> progress)
+        public async Task MergeMovies(IProgress<double> progress)
         {
             _logger.LogInformation("Scanning for repeated movies");
 
@@ -49,19 +49,16 @@ namespace Jellyfin.Plugin.MergeVersions
                 .ToList();
 
             var current = 0;
-            Parallel.ForEach(
-                duplicateMovies,
-                async m =>
-                {
-                    current++;
-                    var percent = current / (double)duplicateMovies.Count * 100;
-                    progress?.Report((int)percent);
-                    _logger.LogInformation(
-                        $"Merging {m.ElementAt(0).Name} ({m.ElementAt(0).ProductionYear})"
-                    );
-                    await MergeVersions(m.Select(e => e.Id).ToList());
-                }
-            );
+            foreach (var m in duplicateMovies)
+            {
+                current++;
+                var percent = current / (double)duplicateMovies.Count * 100;
+                progress?.Report(percent);
+                _logger.LogInformation(
+                    $"Merging {m.ElementAt(0).Name} ({m.ElementAt(0).ProductionYear})"
+                );
+                await MergeVersions(m.Select(e => e.Id).ToList());
+            }
             progress?.Report(100);
         }
 

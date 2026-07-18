@@ -24,12 +24,11 @@ namespace Jellyfin.Plugin.MergeVersions.ScheduledTasks
             _mergeVersionsManager = new MergeVersionsManager(libraryManager, logger, fileSystem);
         }
 
-        public Task Execute(CancellationToken cancellationToken, IProgress<double> progress)
+        public async Task Execute(CancellationToken cancellationToken, IProgress<double> progress)
         {
             _logger.LogInformation("Starting plugin, Merging Movies");
-            _mergeVersionsManager.MergeMovies(progress);
+            await _mergeVersionsManager.MergeMovies(progress);
             _logger.LogInformation("All movies merged");
-            return Task.CompletedTask;
         }
 
         public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()

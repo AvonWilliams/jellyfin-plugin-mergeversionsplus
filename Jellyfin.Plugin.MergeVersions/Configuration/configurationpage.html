@@ -57,6 +57,22 @@
                         onclick=mergeEpisodes()><span>Merge All Episodes</span></button>
                     <button is="emby-button" type="button" class="raised block" id="split-library"
                         onclick=splitEpisodes()><span>Split All Episodes</span></button>
+
+                    <br />
+                    <div class="verticalSection">
+                        <h3 class="checkboxListLabel">Re-apply primary version strategy:</h3>
+                        <div class="fieldDescription">
+                            Re-evaluates already-merged movies and episodes against the strategy
+                            selected above, promoting a different version to primary where the
+                            strategy now picks one. Save your strategy choice first.
+                        </div>
+                        <button is="emby-button" type="button" class="raised block emby-button"
+                            id="update-defaults" onclick=updateDefaults()><span>Update Defaults</span></button>
+                        <div id="updateDefaultsProgressContainer" style="display:none; margin-top: 1em;">
+                            <div id="updateDefaultsStatusText" class="fieldDescription"></div>
+                            <progress id="updateDefaultsProgressBar" value="0" max="100" style="width:100%;"></progress>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
@@ -100,6 +116,64 @@
                 });
             }
 
+
+            function updateDefaults() {
+                var progressContainer = document.getElementById('updateDefaultsProgressContainer');
+                var progressBar = document.getElementById('updateDefaultsProgressBar');
+                var statusText = document.getElementById('updateDefaultsStatusText');
+
+                progressContainer.style.display = 'block';
+                progressBar.value = 0;
+                statusText.innerHTML = 'Starting...';
+
+                ApiClient.getScheduledTasks().then(function (tasks) {
+                    var moviesTask = tasks.filter(function (t) { return t.Key === 'MergeMoviesTask'; })[0];
+                    var episodesTask = tasks.filter(function (t) { return t.Key === 'MergeEpisodesTask'; })[0];
+
+                    if (!moviesTask || !episodesTask) {
+                        Dashboard.alert({ message: 'Could not find the Merge scheduled tasks.' });
+                        return;
+                    }
+
+                    runTask(moviesTask.Id, 'Updating movies', 0, 50)
+                        .then(function () {
+                            return runTask(episodesTask.Id, 'Updating episodes', 50, 50);
+                        })
+                        .then(function () {
+                            statusText.innerHTML = 'Done';
+                            progressBar.value = 100;
+                        })
+                        .catch(function () {
+                            Dashboard.alert({ message: 'Unexpected error occurred!' });
+                        });
+                });
+
+                function runTask(taskId, label, offset, weight) {
+                    return ApiClient.startScheduledTask(taskId).then(function () {
+                        return pollTask(taskId, label, offset, weight);
+                    });
+                }
+
+                function pollTask(taskId, label, offset, weight) {
+                    return new Promise(function (resolve, reject) {
+                        var interval = setInterval(function () {
+                            ApiClient.getScheduledTask(taskId).then(function (task) {
+                                var pct = task.CurrentProgressPercentage || 0;
+                                progressBar.value = offset + (pct / 100) * weight;
+                                statusText.innerHTML = label + '... ' + Math.round(pct) + '%';
+
+                                if (task.State === 'Idle') {
+                                    clearInterval(interval);
+                                    resolve();
+                                }
+                            }).catch(function () {
+                                clearInterval(interval);
+                                reject();
+                            });
+                        }, 1000);
+                    });
+                }
+            }
 
             function splitMovies() {
                 var request = {

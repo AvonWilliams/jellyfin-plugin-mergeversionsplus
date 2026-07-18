@@ -46,7 +46,7 @@ namespace Jellyfin.Plugin.MergeVersions.Api
         public ActionResult MergeMoviesRequest()
         {
             _logger.LogInformation("Starting a manual refresh, looking up for repeated versions");
-            _mergeVersionsManager.MergeMovies(null);
+            _ = _mergeVersionsManager.MergeMovies(null);
             _logger.LogInformation("Completed refresh");
             return NoContent();
         }
