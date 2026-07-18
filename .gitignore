@@ -1,0 +1,4 @@
+bin/
+obj/
+Jellyfin.Plugin.MergeVersions/bin/
+Jellyfin.Plugin.MergeVersions/obj/

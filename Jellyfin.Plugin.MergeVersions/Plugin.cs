@@ -16,16 +16,16 @@ namespace Jellyfin.Plugin.MergeVersions
             Instance = this;
         }
 
-        public override string Name => "Merge Versions";
+        public override string Name => "Merge Versions Plus";
 
         public static Plugin Instance { get; private set; }
 
         public override string Description
-            => "Merge Versions";
+            => "Merge Versions with configurable primary version selection";
 
         public PluginConfiguration PluginConfiguration => Configuration;
 
-        private readonly Guid _id = new Guid("f21bbed8-3a97-4d8b-88b2-48aaa65427cb");
+        private readonly Guid _id = new Guid("2e02b900-aaf6-4415-b304-44f0c6f8c162");
         public override Guid Id => _id;
 
         public IEnumerable<PluginPageInfo> GetPages()
